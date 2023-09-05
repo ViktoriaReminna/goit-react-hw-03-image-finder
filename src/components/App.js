@@ -42,20 +42,22 @@ export class App extends Component {
   }
 
   fetch = async () => {
+    const { query, page } = this.state;
     try {
-      if (!this.state.query) {
+      if (!query) {
         console.log(this.state.query);
         return;
       }
 
       this.setState({ isLoading: true });
-      const images = await getImages(this.state.page, this.state.query);
+      const result = await getImages(query, page);
 
       this.setState(prevState => ({
-        images: [...prevState.images, ...images.images],
+        images:
+          page === 1 ? result.hits : [...prevState.images, ...result.hits],
         isLoading: false,
-        hits: images.total,
-        totalHits: images.totalHits,
+        hits: result.total,
+        totalHits: result.totalHits,
       }));
     } catch (error) {
       this.setState({ error: true, isLoading: false });
@@ -72,6 +74,7 @@ export class App extends Component {
   toggleModal = evt => {
     this.setState(({ showModal }) => ({ showModal: !showModal }));
     if (evt.target.nodeName !== 'IMG') {
+      console.log('Image clicked');
       return;
     }
     this.setState({
@@ -82,8 +85,8 @@ export class App extends Component {
     });
   };
   resetModal = () => {
-    this.setState(({ showModal }) => ({ showModal: !showModal }));
     this.setState({
+      showModal: false,
       modalData: {
         bigImg: '',
         alt: '',
@@ -138,7 +141,9 @@ export class App extends Component {
             colors={['#e15b64', '#f47e60', '#f8b26a', '#abbd81', '#849b87']}
           />
         )}
-        {showModal && <Modal src={bigImg} alt={alt} close={this.resetModal} />}
+        {showModal && (
+          <Modal src={bigImg} alt={alt} onClose={this.resetModal} />
+        )}
       </div>
     );
   }

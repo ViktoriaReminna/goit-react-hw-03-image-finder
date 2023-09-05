@@ -1,6 +1,6 @@
 import { Component } from 'react';
 import { ColorRing } from 'react-loader-spinner';
-import { getImages } from '../service/image-api'; // Імпорт Api з правильним шляхом
+import { getImages } from '../service/image-api';
 import { SearchBar } from './Searchbar/Searchbar';
 import { ImageGallery } from './ImageGallery/ImageGallery';
 

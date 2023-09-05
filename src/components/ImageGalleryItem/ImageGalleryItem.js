@@ -1,9 +1,9 @@
-import React from 'react';
+import { Li } from './ImageGaleryItem.styled';
 
-export const ImageGalleryItem = ({ imageUrl, alt, onClick }) => {
+export const ImageGalleryItem = ({ img, alt, onClick, largeImageURL }) => {
   return (
-    <li className="gallery-item" onClick={() => onClick(imageUrl)}>
-      <img src={imageUrl} alt={alt} />
-    </li>
+    <Li>
+      <img src={img} alt={alt} data-src={largeImageURL} onClick={onClick} />
+    </Li>
   );
 };

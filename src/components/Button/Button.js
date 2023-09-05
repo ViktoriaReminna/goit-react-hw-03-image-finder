@@ -1,9 +1,10 @@
 import React from 'react';
+import { Button } from './Button.styled';
 
-export const Button = ({ onClick, isHidden }) => {
-  return isHidden ? null : (
-    <button type="button" className="button" onClick={onClick}>
-      Load more
-    </button>
+export const BtnLoadMore = ({ click }) => {
+  return (
+    <Button type="button" onClick={click}>
+      Load more...
+    </Button>
   );
 };

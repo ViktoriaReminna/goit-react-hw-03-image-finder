@@ -4,6 +4,7 @@ import { Form, InputBtn, Input } from './SearchBar.styled';
 export class SearchBar extends Component {
   state = {
     query: '',
+    page: 1,
   };
 
   handleSubmit = e => {

@@ -1,31 +1,35 @@
 import { Component } from 'react';
-import { LoaderComponent } from './Loader/Loader';
-import * as Service from '../service/image-api'; // Імпорт Api з правильним шляхом
+import { ColorRing } from 'react-loader-spinner';
+import { getImages } from '../service/image-api'; // Імпорт Api з правильним шляхом
 import { SearchBar } from './Searchbar/Searchbar';
 import { ImageGallery } from './ImageGallery/ImageGallery';
-import { ImageGalleryItem } from './ImageGalleryItem/ImageGalleryItem';
-import { Button } from './Button/Button';
+
+import { BtnLoadMore } from './Button/Button';
+
 import { Modal } from './Modal/Modal';
 
 export class App extends Component {
   state = {
     query: '',
     images: [],
-    page: 1,
     isLoading: false,
-    isModalOpen: false, // Додайте цей стан
-    selectedImage: null,
+    error: false,
+    page: 1,
+    hits: null,
+    totalHits: null,
+    showModal: false,
+    modalData: {
+      bigImg: '',
+      alt: '',
+    },
   };
 
   changeQuery = newQuery => {
-    this.setState(
-      {
-        query: newQuery,
-        images: [],
-        page: 1,
-      },
-      this.fetch // Додавання виклику методу fetch як колбеку після оновлення стану
-    );
+    this.setState({
+      query: newQuery,
+      images: [],
+      page: 1,
+    });
   };
 
   componentDidUpdate(prevProps, prevState) {
@@ -38,71 +42,103 @@ export class App extends Component {
   }
 
   fetch = async () => {
-    const { query, page } = this.state;
-
     try {
-      this.setState({ isLoading: true });
-      const result = await Service.getImages(query, page); // Виправлення Api на Api
+      if (!this.state.query) {
+        console.log(this.state.query);
+        return;
+      }
 
-      this.setState(prevState => {
-        return {
-          images: [...prevState.images, ...result], // Виправлення поля result.photos на просто result
-        };
-      });
+      this.setState({ isLoading: true });
+      const images = await getImages(this.state.page, this.state.query);
+
+      this.setState(prevState => ({
+        images: [...prevState.images, ...images.images],
+        isLoading: false,
+        hits: images.total,
+        totalHits: images.totalHits,
+      }));
     } catch (error) {
+      this.setState({ error: true, isLoading: false });
       console.log(error);
-    } finally {
-      this.setState({ isLoading: false }); // Встановлення isLoading в false після завершення завантаження
     }
   };
-
   handleLoadMore = () => {
     this.setState(
       prevState => ({ page: prevState.page + 1 }),
       this.fetch // Додавання виклику методу fetch як колбеку після оновлення стану
     );
   };
-  handleImageClick = imageUrl => {
-    this.setState({ selectedImage: imageUrl });
-  };
-  openModal = imageUrl => {
-    this.setState({ isModalOpen: true, selectedImage: imageUrl });
-  };
 
-  closeModal = () => {
-    this.setState({ isModalOpen: false, selectedImage: null });
+  toggleModal = evt => {
+    this.setState(({ showModal }) => ({ showModal: !showModal }));
+    if (evt.target.nodeName !== 'IMG') {
+      return;
+    }
+    this.setState({
+      modalData: {
+        bigImg: evt.target.dataset.src,
+        alt: evt.target.getAttribute('alt'),
+      },
+    });
+  };
+  resetModal = () => {
+    this.setState(({ showModal }) => ({ showModal: !showModal }));
+    this.setState({
+      modalData: {
+        bigImg: '',
+        alt: '',
+      },
+    });
   };
   render() {
-    const { images, isLoading, isModalOpen, selectedImage } = this.state;
+    const { images, isLoading, hits, totalHits, showModal, modalData } =
+      this.state;
+    const { bigImg, alt } = modalData;
     return (
-      <div>
-        <SearchBar onSubmit={this.changeQuery} />{' '}
-        {isLoading ? (
-          <LoaderComponent />
-        ) : (
-          <ImageGallery>
-            {images.map((image, index) => (
-              <ImageGalleryItem
-                key={image.id || index}
-                imageUrl={image.webformatURL}
-                alt={image.tags}
-                onClick={() => this.openModal(image.largeImageURL)}
-              />
-            ))}
-          </ImageGallery>
+      <div
+        style={{
+          width: '1240px',
+          padding: '0 20px',
+          margin: '0 auto',
+        }}
+      >
+        <SearchBar onSubmit={this.changeQuery} />
+        {images.length === 0 && !isLoading && (
+          <p
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'center',
+              fontSize: '75px',
+              fontWeight: 'bold',
+              fontStyle: 'italic',
+              color: '#87a9c7',
+            }}
+          >
+            There`re no images yet. Please enter the search category!
+          </p>
         )}
-        <Button
-          onClick={this.handleLoadMore}
-          isHidden={images.length === 0 || isLoading}
-        />
-        {isModalOpen && (
-          <Modal
-            isOpen={!!selectedImage}
-            imageUrl={selectedImage}
-            alt=""
-            onClose={() => this.setState({ selectedImage: null })}
+        {images.length !== 0 && (
+          <>
+            <ImageGallery data={images} onClick={this.toggleModal} />{' '}
+          </>
+        )}
+        {hits >= 12 && images.length !== totalHits && !isLoading && (
+          <BtnLoadMore click={this.handleLoadMore} />
+        )}
+
+        {isLoading && (
+          <ColorRing
+            visible={true}
+            height="180"
+            width="180"
+            ariaLabel="blocks-loading"
+            wrapperStyle={{}}
+            wrapperClass="blocks-wrapper"
+            colors={['#e15b64', '#f47e60', '#f8b26a', '#abbd81', '#849b87']}
           />
         )}
+        {showModal && <Modal src={bigImg} alt={alt} close={this.resetModal} />}
       </div>
     );
   }

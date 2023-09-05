@@ -19,7 +19,6 @@ export class Modal extends Component {
   };
 
   clickBackdrop = event => {
-    
     if (event.target !== event.currentTarget) {
       return;
     }
@@ -38,20 +37,3 @@ export class Modal extends Component {
     );
   }
 }
-
-//   render() {
-//     const { isOpen, imageUrl, alt, onClose } = this.props;
-
-//     if (!isOpen) {
-//       return null;
-//     }
-
-//     return (
-//       <div className="overlay" onClick={onClose}>
-//         <div className="modal">
-//           <img src={imageUrl} alt={alt} />
-//         </div>
-//       </div>
-//     );
-//   }
-// }

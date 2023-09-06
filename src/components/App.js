@@ -53,8 +53,7 @@ export class App extends Component {
       const result = await getImages(query, page);
 
       this.setState(prevState => ({
-        images:
-          page === 1 ? result.hits : [...prevState.images, ...result.hits],
+        images: [...prevState.images, ...result.hits],
         isLoading: false,
         hits: result.total,
         totalHits: result.totalHits,
@@ -65,10 +64,7 @@ export class App extends Component {
     }
   };
   handleLoadMore = () => {
-    this.setState(
-      prevState => ({ page: prevState.page + 1 }),
-      this.fetch // Додавання виклику методу fetch як колбеку після оновлення стану
-    );
+    this.setState(prevState => ({ page: prevState.page + 1 }));
   };
 
   toggleModal = evt => {
